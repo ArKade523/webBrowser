@@ -1,10 +1,14 @@
 #pragma once
 #include <SDL.h>
 // #include <SDL_ttf.h>
-#include "/opt/homebrew/Cellar/sdl2_ttf/2.22.0/include/SDL2/SDL_ttf.h"
+#include "/usr/local/Cellar/sdl2_ttf/2.22.0/include/SDL2/SDL_ttf.h"
 #include <string>
 #include <map>
 #include <iostream>
+#include <filesystem>
+#include <cstdlib> // for getenv()
+#include <fstream>
+#include "Font_TTCParsing.h"
 
 enum class FontStyle {
     BLACK,
@@ -28,12 +32,13 @@ public:
 
     TTF_Font* getFont(const std::string& fontName, int size, FontStyle style = FontStyle::REGULAR);
     static FontManager& getInstance();
-    void initialize(const std::string& fontsPath);
-    FontManager();
     ~FontManager();
 
 private:
-    std::string fontsPath;
-    std::map<std::pair<std::string, FontStyle>, TTF_Font*> fonts;
-    bool initialized = false;
+    std::vector<std::string> fontPaths;
+    std::map<std::tuple<std::string, FontStyle, int>, TTF_Font*> fontCache;
+
+    FontManager();
+    TTF_Font* loadFont(const std::string& fontPath, int size, int index = 0);
+    std::string getStyleString(FontStyle style);
 };

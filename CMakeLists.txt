@@ -12,10 +12,17 @@ find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
 # Link against SDL_ttf
-set(SDL2_TTF_DIRS "/opt/homebrew/Cellar/sdl2_ttf/2.22.0/include/SDL2")
-set(SDL2_TTF_LIBRARIES "/opt/homebrew/Cellar/sdl2_ttf/2.22.0/lib/libSDL2_ttf.dylib")
+set(SDL2_TTF_DIRS "/usr/local/Cellar/sdl2_ttf/2.22.0/include/SDL2")
+set(SDL2_TTF_LIBRARIES "/usr/local/Cellar/sdl2_ttf/2.22.0/lib/libSDL2_ttf.dylib")
 find_package(SDL2_ttf REQUIRED)
 include_directories(${SDL2_TTF_INCLUDE_DIRS})
+
+# Link against FreeType
+set(FREETYPE_DIRS "/usr/local/Cellar/freetype/2.13.2/include/freetype2")
+# set(FREETYPE_DIRS "/opt/homebrew/Cellar/freetype/2.13.2/include/freetype2")
+# set(FREETYPE_LIBRARIES "/usr/local/Cellar/freetype/2.11.0/lib/libfreetype.dylib")
+find_package(Freetype REQUIRED)
+include_directories(${FREETYPE_INCLUDE_DIRS})
 
 # Define the executable target
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
@@ -25,6 +32,9 @@ target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
 
 # link against SDL_ttf
 target_link_libraries(${PROJECT_NAME} ${SDL2_TTF_LIBRARIES})
+
+# link against FreeType
+target_link_libraries(${PROJECT_NAME} ${FREETYPE_LIBRARIES})
 
 # Collect all .cpp files in the src directory
 file(GLOB_RECURSE PROJECT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)

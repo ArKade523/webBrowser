@@ -1,11 +1,11 @@
 #include "HTMLDocument.hpp"
 #include "globals.h"
 #include "renderHTML.h"
+#include "renderQueue.hpp"
 #include <iostream>
 #include <fstream>
-#include <SDL.h>
-// #include <SDL_ttf.h>
-#include "/opt/homebrew/Cellar/sdl2_ttf/2.22.0/include/SDL2/SDL_ttf.h"
+
+#define NDEBUG
 
 int initWindow();
 int initRenderer();
@@ -20,13 +20,13 @@ int main(int32_t argc, char* argv[]) {
         close();
         return EXIT_FAILURE;
     }
-    FontManager& font_manager = FontManager::getInstance();
-    font_manager.initialize("../assets/fonts");
 
     std::string htmlPath = "../html/index.html";
     if (argc > 1) {
         htmlPath = argv[1];
     }
+
+    RenderQueue& rq = RenderQueue::getInstance();
 
     std::ifstream htmlFile(htmlPath);
 
@@ -58,9 +58,10 @@ int main(int32_t argc, char* argv[]) {
 
         // renderText(g_renderer, roboto_font, "Hello, World!", 10, 10);
 
-        renderNode(g_renderer, doc.getRoot(), 0, 0);
+        // renderNode(g_renderer, doc.getRoot(), 0, 0);
 
-        // TODO: Render the HTMLDocument
+        rq.populateQueue(doc.getRoot());
+        rq.render();
 
         SDL_RenderPresent(g_renderer);
     }
@@ -99,7 +100,7 @@ int initRenderer() {
         std::cout << "Initializing Renderer" << std::endl;
     #endif
 
-    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
+    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!g_renderer) {
         std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
@@ -118,12 +119,6 @@ int initFont() {
         std::cerr << "SDL_Error: " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
     }
-
-    // roboto_font = TTF_OpenFont("../assets/Roboto/Roboto-Bold.ttf", 24);
-    // if (!roboto_font) {
-    //     std::cerr << "Font could not be loaded! TTF_Error: " << TTF_GetError() << std::endl;
-    //     return EXIT_FAILURE;
-    // }
 
     return EXIT_SUCCESS;
 }

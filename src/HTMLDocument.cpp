@@ -26,7 +26,7 @@ HTMLDocument::~HTMLDocument() {
  * @return Node*
  * Returns the root node of the tree.
 */
-Node* HTMLDocument::getRoot() {
+ElementNode* HTMLDocument::getRoot() {
     return root;
 }
 
@@ -93,7 +93,7 @@ std::vector<Token> HTMLDocument::tokenize() {
     return tokens;
 }
 
-Node* HTMLDocument::parse() {
+ElementNode* HTMLDocument::parse() {
     // TODO: Implement the parsing of the tokens into a tree of nodes.
     std::stack<Node*> stack;
 
@@ -101,8 +101,8 @@ Node* HTMLDocument::parse() {
         switch(token.type) {
             case TokenType::TAG_OPEN:
                 {
-                    Node* node = new Node();
-                    node->type = getElementType(token.value);
+                    ElementNode* node = new ElementNode();
+                    node->elementType = getElementType(token.value);
                     node->birthOrder = stack.empty() ? 0 : stack.top()->children.size();
                     if (!stack.empty()) {
                         stack.top()->children.push_back(node);
@@ -121,8 +121,10 @@ Node* HTMLDocument::parse() {
                 break;
             case TokenType::TAG_SELF_CLOSE:
                 {
-                    Node* node = new Node();
-                    node->type = getElementType(token.value);
+                    ElementNode* node = new ElementNode();
+                    node->elementType = getElementType(token.value);
+                    node->attributes = parseAttributes(token.value);
+                    node->birthOrder = stack.empty() ? 0 : stack.top()->children.size();
                     if (!stack.empty()) {
                         stack.top()->children.push_back(node);
                     } else {
@@ -133,7 +135,9 @@ Node* HTMLDocument::parse() {
             case TokenType::TEXT:
                 {
                     if (!stack.empty()) {
-                        stack.top()->textContent = token.value;
+                        TextNode* textNode = new TextNode();
+                        textNode->textContent = token.value;
+                        stack.top()->children.push_back(textNode);
                     }
                 }
                 break;
@@ -141,6 +145,32 @@ Node* HTMLDocument::parse() {
     }
 
     return root;
+}
+
+std::pair<std::string, std::vector<std::string>> HTMLDocument::parseAttributes(std::string tag) {
+    std::pair<std::string, std::vector<std::string>> attributes;
+    size_t space = tag.find(' ');
+    if (space != std::string::npos) {
+        attributes.first = tag.substr(0, space);
+        tag = tag.substr(space + 1);
+    } else {
+        attributes.first = tag;
+        return attributes;
+    }
+
+    size_t start = 0;
+    size_t end = 0;
+    while (end != std::string::npos) {
+        end = tag.find(' ', start);
+        if (end != std::string::npos) {
+            attributes.second.push_back(tag.substr(start, end - start));
+            start = end + 1;
+        } else {
+            attributes.second.push_back(tag.substr(start));
+        }
+    }
+
+    return attributes;
 }
 
 ElementType HTMLDocument::getElementType(std::string tag) {
